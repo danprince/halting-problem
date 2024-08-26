@@ -282,6 +282,36 @@ function undo() {
   }
 }
 
+function move(
+  direction: typeof UP | typeof DOWN | typeof LEFT | typeof RIGHT,
+): boolean {
+  // Direction checks are too awkward with random programs
+  // let dirs = fetch(memory[IP], INSTR_DIRS);
+  // if (dirs === 0 || (dirs & direction) === 0) return false;
+
+  if (direction === LEFT) return jump(memory[IP] - 1);
+  if (direction === UP) return jump(memory[IP] - PROGRAM_COLS);
+  if (direction === DOWN) return jump(memory[IP] + PROGRAM_COLS);
+  if (direction === RIGHT) return jump(memory[IP] + 1);
+
+  return false;
+}
+
+function dispatch(command: number) {
+  let snapshot = dump();
+  let ok = false;
+
+  if (command === LEFT) ok = move(LEFT);
+  if (command === UP) ok = move(UP);
+  if (command === DOWN) ok = move(DOWN);
+  if (command === RIGHT) ok = move(RIGHT);
+
+  if (ok) {
+    history.push(snapshot);
+    cycle();
+  }
+}
+
 function init() {
   for (let i = 0; i < PROGRAM_SIZE; i += INSTR_WIDTH) {
     let mode = pick(ADDRESS_MODE, IMMEDIATE_MODE);
@@ -324,28 +354,15 @@ onpointermove = ({ clientX, clientY }) => {
 };
 
 onkeydown = ({ key }) => {
-  let temp = dump();
-  let ok = false;
+  if (key === "h" || key === "ArrowLeft") dispatch(LEFT);
+  if (key === "j" || key === "ArrowDown") dispatch(DOWN);
+  if (key === "k" || key === "ArrowUp") dispatch(UP);
+  if (key === "l" || key === "ArrowRight") dispatch(RIGHT);
+  if (key === "Backspace" || key === "z") undo();
 
-  if (key === "h") ok = jump(memory[IP] - 1);
-  if (key === "j") ok = jump(memory[IP] + PROGRAM_COLS);
-  if (key === "k") ok = jump(memory[IP] - PROGRAM_COLS);
-  if (key === "l") ok = jump(memory[IP] + 1);
-
+  // Jump directly to cursor (useful for debugging)
   if (key === " " && cursor) {
-    let ptr = lookup(cursor.x, cursor.y);
-    if (ptr !== undefined && ptr !== memory[IP]) {
-      ok = jump(ptr);
-    }
-  }
-
-  if (key === "Backspace" || key === "z") {
-    undo();
-  }
-
-  if (ok) {
-    history.push(temp);
-    cycle();
+    memory[IP] = lookup(cursor.x, cursor.y) ?? memory[IP];
   }
 };
 
