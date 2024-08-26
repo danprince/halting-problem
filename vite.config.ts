@@ -13,12 +13,7 @@ export default defineConfig({
         unsafe_arrows: true,
         passes: 2,
       },
-      mangle: {
-        properties: {
-          // Glyph width overrides in font.json need to be preserved.
-          keep_quoted: true
-        },
-      },
+      mangle: true,
     },
     rollupOptions: {
       output: {
@@ -46,6 +41,6 @@ function singleFile(): Plugin {
       }
 
       delete bundle[js.fileName];
-    }
+    },
   };
 }
