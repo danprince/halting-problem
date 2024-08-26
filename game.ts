@@ -1,4 +1,4 @@
-import { clear, draw, label, rect, resize, Sprite, write } from "./renderer";
+import { clear, draw, resize, Sprite, write } from "./canvas";
 import * as sprites from "./sprites";
 import { pick, random } from "./utils";
 import {
@@ -71,6 +71,9 @@ let history: Uint8ClampedArray[] = [];
  */
 let cursor: { x: number; y: number } | undefined;
 
+/**
+ * Opcode info lookup.
+ */
 let OPCODES: {
   [opcode: string]: { label: string; hint: string } | undefined;
 } = {
@@ -86,25 +89,40 @@ let OPCODES: {
   [END]: { label: "END", hint: "END PROGRAM" },
 };
 
-let OPERANDS: {
+/**
+ * Register info lookup.
+ */
+let REGISTERS: {
   [name: string]: { label: string; hint: string } | undefined;
 } = {
-  [DBG]: { label: "", hint: "" },
   [DAT]: { label: "DAT", hint: "" },
   [STK]: { label: "STK", hint: "" },
 };
 
+/**
+ * Get the instruction address under a given point.
+ */
+function lookup(x: number, y: number): number | undefined {
+  // TODO: Handle OOB properly.
+  let gridX = (x / CELL_SIZE_PIXELS) | 0;
+  let gridY = (y / CELL_SIZE_PIXELS) | 0;
+  return gridX + gridY * PROGRAM_COLS;
+}
+
+/**
+ * Draw a cell on the grid.
+ */
 function drawCell(
   x: number,
   y: number,
+  sprite: Sprite,
+  spriteColor: string,
   label: string,
   labelColor: string,
   value: string | number | undefined,
   valueColor: string,
-  arrows: number | undefined,
-  arrowColor: string,
-  sprite: Sprite,
-  spriteColor: string,
+  arrows?: number,
+  arrowColor?: string,
 ) {
   let dx = x * CELL_SIZE_PIXELS;
   let dy = y * CELL_SIZE_PIXELS;
@@ -130,29 +148,10 @@ function drawCell(
   }
 }
 
-function render() {
-  clear();
-
-  // Instructions
-  for (let x = 0; x < PROGRAM_COLS; x++) {
-    for (let y = 0; y < PROGRAM_ROWS; y++) {
-      renderInstruction(x, y);
-    }
-  }
-
-  // Registers
-  renderRegisters();
-
-  // Debugger
-  renderDebugger();
-
-  // Cursor
-  if (cursor) {
-    draw(sprites.cursor, cursor.x, cursor.y);
-  }
-}
-
-function renderInstruction(x: number, y: number) {
+/**
+ * Draw a specific instruction.
+ */
+function drawInstruction(x: number, y: number) {
   let ptr = x + y * PROGRAM_COLS;
   let opcode = fetch(ptr, INSTR_OPCODE);
   let operand = fetch(ptr, INSTR_OPERAND);
@@ -171,7 +170,7 @@ function renderInstruction(x: number, y: number) {
   }
 
   let opcodeInfo = OPCODES[opcode];
-  let operandInfo = OPERANDS[operand];
+  let operandInfo = REGISTERS[operand];
   let name = opcodeInfo?.label;
   let value: string | number | undefined;
 
@@ -188,139 +187,72 @@ function renderInstruction(x: number, y: number) {
   drawCell(
     x,
     y,
+    sprite,
+    color,
     name!,
     labelColor,
     value,
     "white",
     dirs,
     "gray",
-    sprite,
-    color,
   );
 }
 
-function renderRegisters() {
-  drawCell(
-    0,
-    7,
-    "DAT",
-    YELLOW_1,
-    memory[DAT],
-    YELLOW_2,
-    0,
-    "",
-    sprites.cell_register,
-    YELLOW_1,
-  );
-
-  drawCell(
-    0,
-    8,
-    "CYC",
-    GRAY_2,
-    memory[CYC],
-    WHITE,
-    0,
-    "",
-    sprites.cell_register,
-    GRAY_1,
-  );
-
-  drawCell(
-    1,
-    8,
-    "IP",
-    GRAY_2,
-    memory[IP],
-    WHITE,
-    0,
-    "",
-    sprites.cell_register,
-    GRAY_1,
-  );
-
-  drawCell(
-    2,
-    8,
-    "SP",
-    GRAY_2,
-    memory[SP],
-    WHITE,
-    0,
-    "",
-    sprites.cell_register,
-    GRAY_1,
-  );
-
-  drawCell(
-    3,
-    8,
-    "DBG",
-    GRAY_2,
-    memory[DBG],
-    WHITE,
-    0,
-    "",
-    sprites.cell_register,
-    GRAY_1,
-  );
-
-  let sp = memory[SP];
+/**
+ * Draw the states of the registers.
+ */
+function drawRegisters() {
+  let sprite = sprites.cell_register;
+  drawCell(0, 7, sprite, YELLOW_1, "DAT", YELLOW_1, memory[DAT], YELLOW_2);
+  drawCell(0, 8, sprite, GRAY_1, "CYC", GRAY_2, memory[CYC], WHITE);
+  drawCell(1, 8, sprite, GRAY_1, "IP", GRAY_2, memory[IP], WHITE);
+  drawCell(2, 8, sprite, GRAY_1, "SP", GRAY_2, memory[SP], WHITE);
+  drawCell(3, 8, sprite, GRAY_1, "DBG", GRAY_2, memory[DBG], WHITE);
 
   for (let i = 0; i < STACK_LENGTH; i++) {
     let value = memory[STK + i];
-    drawCell(
-      1 + i,
-      7,
-      sp === i ? "STK" : i.toString().padStart(3),
-      sp === i ? PURPLE_2 : PURPLE_1,
-      value,
-      PURPLE_2,
-      0,
-      "",
-      sprites.cell_register,
-      PURPLE_1,
-    );
+    let label = i === memory[SP] ? "STK" : i.toString().padStart(3);
+    drawCell(1 + i, 7, sprite, PURPLE_1, label, PURPLE_1, value, PURPLE_2);
   }
 }
 
-// TODO: Better name, move away
-function anim(duration: number, frames: number) {
+/**
+ * Draw the character (the debugger).
+ */
+function drawDebugger() {
   let t = performance.now();
-  return ((t / duration) | 0) % frames;
-}
-
-function renderDebugger() {
   let ip = memory[IP];
   let x = ip % PROGRAM_COLS;
   let y = (ip / PROGRAM_COLS) | 0;
-
   let dx = x * CELL_SIZE_PIXELS;
   let dy = y * CELL_SIZE_PIXELS;
-  let hop = anim(250, 2);
+  let hop = (t / 250) % 2 | 0;
   let sprite = hop ? sprites.pointer : sprites.pointer_idle;
   let value = memory[DBG].toString().padStart(3);
+
   draw(sprite, dx, dy);
   write(dx + 4, dy - hop + 10, value);
 }
 
-function getAddressUnderCursor(): number | undefined {
-  if (cursor) {
-    let x = (cursor.x / CELL_SIZE_PIXELS) | 0;
-    let y = (cursor.y / CELL_SIZE_PIXELS) | 0;
-    return x + y * PROGRAM_COLS;
+function render() {
+  clear();
+
+  // Instructions
+  for (let x = 0; x < PROGRAM_COLS; x++) {
+    for (let y = 0; y < PROGRAM_ROWS; y++) {
+      drawInstruction(x, y);
+    }
   }
-}
 
-let renderIsScheduled = false;
+  // Registers
+  drawRegisters();
 
-function refresh() {
-  if (!renderIsScheduled) {
-    renderIsScheduled = true;
-    requestAnimationFrame(() => {
-      render();
-      renderIsScheduled = false;
-    });
+  // Debugger
+  drawDebugger();
+
+  // Cursor
+  if (cursor) {
+    draw(sprites.cursor, cursor.x, cursor.y);
   }
 }
 
@@ -345,19 +277,19 @@ function init() {
   }
 }
 
+function loop() {
+  requestAnimationFrame(loop);
+  render();
+}
+
 function start() {
   init();
   resize();
-  refresh();
+  loop();
 }
-
-setInterval(() => {
-  refresh();
-}, 100);
 
 onresize = () => {
   resize();
-  refresh();
 };
 
 onpointermove = ({ clientX, clientY }) => {
@@ -369,8 +301,6 @@ onpointermove = ({ clientX, clientY }) => {
   let x = (canvasX * scaleX) | 0;
   let y = (canvasY * scaleY) | 0;
   cursor = { x, y };
-
-  refresh();
 };
 
 onkeydown = ({ key }) => {
@@ -381,7 +311,13 @@ onkeydown = ({ key }) => {
   if (key === "j") ok = jump(memory[IP] + PROGRAM_COLS);
   if (key === "k") ok = jump(memory[IP] - PROGRAM_COLS);
   if (key === "l") ok = jump(memory[IP] + 1);
-  if (key === " ") ok = jump(getAddressUnderCursor() ?? memory[IP]);
+
+  if (key === " " && cursor) {
+    let ptr = lookup(cursor.x, cursor.y);
+    if (ptr !== undefined && ptr !== memory[IP]) {
+      ok = jump(ptr);
+    }
+  }
 
   if (key === "Backspace" || key === "z") {
     undo();
@@ -391,8 +327,6 @@ onkeydown = ({ key }) => {
     history.push(temp);
     cycle();
   }
-
-  refresh();
 };
 
 start();
