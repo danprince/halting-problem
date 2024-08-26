@@ -11,7 +11,7 @@ const GLYPH_HEIGHT = 5;
 export let sprites = new Image();
 sprites.src = spritesUrl;
 
-export let recoloredSprites: Record<string, OffscreenCanvas> = {};
+export let recoloredSprites: Record<string, HTMLCanvasElement> = {};
 
 export interface Sprite {
   x: number;
@@ -26,7 +26,7 @@ export function alpha(value: number) {
   ctx.globalAlpha = value;
 }
 
-export function recolor(color: string): OffscreenCanvas | HTMLImageElement {
+export function recolor(color: string): HTMLCanvasElement | HTMLImageElement {
   if (!sprites.complete) {
     return sprites;
   }
@@ -34,7 +34,9 @@ export function recolor(color: string): OffscreenCanvas | HTMLImageElement {
   let canvas = recoloredSprites[color];
 
   if (!canvas) {
-    canvas = new OffscreenCanvas(sprites.width, sprites.height);
+    canvas = document.createElement("canvas");
+    canvas.width = sprites.width;
+    canvas.height = sprites.height;
     let ctx = canvas.getContext("2d")!;
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
