@@ -1,15 +1,5 @@
-<body>
-  <div id="poem">Hello world</div>
-  <div id="line"></div>
-  <div id="hand"><button>Testing</button></div>
-  <title>Rogue Poetry</title>
-  <script type="module" src="./game.ts"></script>
-  <style>
-    body { max-width: 768px; margin: 100px auto; font-family: Georgia; font-size: 24pt; background: #ffebc8; }
-    button { border: 0; background: none; padding: 0; font: inherit; cursor: pointer; }
-    #hand button, #line button:hover { opacity: 0.5; }
-    #hand button:hover, #line button { opacity: 1; }
-    #line :first-child { text-transform: capitalize; }
-    #hand { display: flex; flex-wrap: wrap; gap: 0.6em; line-height: 80%; margin-top: 1em; }
-  </style>
+<body style="margin:0;display:flex;align-items:center;justify-content:center;background-color:#060b10;">
+  <title>Halting Problem</title>
+  <canvas id=c width=320 height=184 style="image-rendering:pixelated;cursor:none"></canvas>
+  <script type=module src="./game.ts"></script>
 </body>
