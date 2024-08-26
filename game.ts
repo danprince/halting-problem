@@ -1,54 +1,49 @@
 import { clear, draw, label, rect, resize, Sprite, write } from "./renderer";
 import * as sprites from "./sprites";
 import { pick, random } from "./utils";
-
-// REGISTERS
-const IP = 1; // Instruction pointer
-const SP = 2; // Stack pointer
-const CYC = 3; // Cycles register
-const DBG = 4; // Debug register
-const DAT = 5; // Data register
-
-// OFFSETS
-const STK = 10; // Stack starts at this address
-const PRG = 24; // Program starts at this address
-
-// OPCODES
-const NIL = 0x0; // Nothing here
-const NOP = 0x1; // Do nothing
-const GET = 0x2; // Move a value into DBG
-const SET = 0x3; // Move DBG into a register
-const SWP = 0x4; // Swap DBG with a register
-const ADD = 0x5; // Add a value to DBG
-const SUB = 0x6; // Sub a value from DBG
-const TEQ = 0x7; // Test if DBG is equal to a value
-const TLT = 0x8; // Test if DBG is less than a value
-const TGT = 0x9; // Test if DBG is greater than a value
-const SND = 0xa; // Send DBG into a port
-const END = 0xb; // Halt the program
-
-// DIRECTIONS
-const RIGHT = 0b0001;
-const DOWN = 0b0010;
-const LEFT = 0b0100;
-const UP = 0b1000;
-
-// MODES
-const IMMEDIATE_MODE = 0; // Operand will be treated as a value
-const ADDRESS_MODE = 1; // Operand will be treated as an address
-
-// OFFSETS / SIZES
-const INSTR_WIDTH = 4; // Width of instructions
-const INSTR_OPCODE = 0; // Offset of instruction opcode
-const INSTR_OPERAND = 1; // Offset of instruction operand
-const INSTR_MODE = 2; // Offset of instruction mode
-const INSTR_DIRS = 3; // Offset of instruction directions
-const STACK_LENGTH = 13; // Max number of values
-const PROGRAM_COLS = 14; // Number of columns in a program
-const PROGRAM_ROWS = 6; // Number of rows in a program
-const PROGRAM_LENGTH = PROGRAM_COLS * PROGRAM_ROWS; // Number of instructions
-const PROGRAM_SIZE = PROGRAM_LENGTH * INSTR_WIDTH; // Number of bytes
-const MEMORY_SIZE = PRG + PROGRAM_SIZE;
+import {
+  GET,
+  SET,
+  SWP,
+  ADD,
+  SUB,
+  TEQ,
+  TLT,
+  TGT,
+  SND,
+  END,
+  DBG,
+  DAT,
+  STK,
+  UP,
+  DOWN,
+  LEFT,
+  RIGHT,
+  PROGRAM_COLS,
+  PROGRAM_ROWS,
+  INSTR_OPCODE,
+  INSTR_OPERAND,
+  INSTR_MODE,
+  INSTR_DIRS,
+  NIL,
+  exec,
+  NOP,
+  ADDRESS_MODE,
+  IMMEDIATE_MODE,
+  memory,
+  CYC,
+  IP,
+  SP,
+  STACK_LENGTH,
+  PROGRAM_SIZE,
+  INSTR_WIDTH,
+  PRG,
+  jump,
+  fetch,
+  dump,
+  load,
+  cycle,
+} from "./vm";
 
 // RENDERING
 const CELL_SIZE_PIXELS = 19;
@@ -67,153 +62,9 @@ const YELLOW_1 = "#684817";
 const YELLOW_2 = "#d7a12c";
 
 /**
- * Virtual machines have the following memory layout.
- *
- * ```txt
- * | 0 | 0xD | Magic number
- * | 1 | IP  | Instruction pointer
- * | 2 | SP  | Stack pointer
- * | 3 | DBG | Value of the DBG register
- * | 4 | DAT | Value of the DAT register
- * | 5 |     | (reserved)
- * | 6 |     | (reserved)
- * | 7 |     | (reserved)
- * | 8 |     | (reserved)
- * | 9 |     | (reserved)
- * (Stack starts here)
- * | 10 |     | (value)
- * | 11 |     | (value)
- * | .. |     | (value)
- * | 22 |     | (value)
- * | 23 |     | (value)
- * (Program starts here)
- * | 24 |     | The opcode
- * | 25 |     | The operand
- * | 26 |     | The operand mode
- * | 27 |     | The instruction direction
- * | .. | ... | ...
- * ```
- */
-let memory = new Uint8ClampedArray(MEMORY_SIZE);
-
-/**
  * Snapshots of all previous memories.
  */
 let history: Uint8ClampedArray[] = [];
-
-/**
- * Peek at the value on top of the stack.
- */
-function peek(): number {
-  return memory[STK + memory[SP] - 1];
-}
-
-/**
- * Push a value onto the top of the stack.
- */
-function push(value: number): void {
-  memory[STK + memory[SP]] = value;
-  memory[SP] += 1;
-}
-
-/**
- * Pop a value from the top of the stack.
- */
-function pop(): number {
-  let value = memory[STK + memory[SP] - 1];
-  memory[SP] -= 1;
-  return value;
-}
-
-/**
- * Fetch a part of an instruction.
- */
-function fetch(ptr: number, offset: number): number {
-  return memory[PRG + ptr * INSTR_WIDTH + offset];
-}
-
-/**
- * Execute an instruction.
- */
-function exec(ptr: number): boolean {
-  let opcode = fetch(ptr, INSTR_OPCODE);
-  let operand = fetch(ptr, INSTR_OPERAND);
-  let mode = fetch(ptr, INSTR_MODE);
-  let value = operand;
-
-  if (mode === ADDRESS_MODE) {
-    if (value === STK) {
-      value = peek() ?? 0;
-    } else {
-      value = memory[value];
-    }
-  }
-
-  switch (opcode) {
-    case NIL:
-      return false;
-
-    case NOP:
-      return true;
-
-    case GET:
-      memory[DBG] = value;
-      return true;
-
-    case SET: {
-      if (operand === STK) {
-        push(memory[DBG]);
-      } else {
-        memory[operand] = value;
-      }
-      return true;
-    }
-
-    case SWP: {
-      if (operand === STK) {
-        let tmp = pop();
-        push(memory[DBG]);
-        memory[DBG] = tmp;
-      } else {
-        let tmp = memory[operand];
-        memory[operand] = memory[DBG];
-        memory[DBG] = tmp;
-      }
-      return true;
-    }
-
-    case ADD:
-      memory[DBG] += value;
-      return true;
-
-    case SUB:
-      memory[DBG] -= value;
-      return true;
-
-    case TEQ:
-      return memory[DBG] === value;
-
-    case TLT:
-      return memory[DBG] < value;
-
-    case TGT:
-      return memory[DBG] > value;
-
-    case SND:
-      return true; // TODO
-  }
-
-  return false;
-}
-
-/**
- * Jump to the instruction at this address.
- */
-function jump(ptr: number): boolean {
-  let ok = exec(ptr);
-  if (ok) memory[IP] = ptr;
-  return ok;
-}
 
 /**
  * The position of the mouse cursor onscreen.
@@ -473,13 +324,9 @@ function refresh() {
   }
 }
 
-function snapshot() {
-  return memory.slice();
-}
-
 function undo() {
   if (history.length) {
-    memory = history.pop()!;
+    load(history.pop()!);
   }
 }
 
@@ -527,7 +374,7 @@ onpointermove = ({ clientX, clientY }) => {
 };
 
 onkeydown = ({ key }) => {
-  let temp = snapshot();
+  let temp = dump();
   let ok = false;
 
   if (key === "h") ok = jump(memory[IP] - 1);
@@ -542,7 +389,7 @@ onkeydown = ({ key }) => {
 
   if (ok) {
     history.push(temp);
-    memory[CYC] += 1;
+    cycle();
   }
 
   refresh();
