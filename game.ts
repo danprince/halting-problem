@@ -199,21 +199,39 @@ function drawInstruction(x: number, y: number) {
 }
 
 /**
+ * Draw the current state of the stack.
+ */
+function drawStack() {
+  let sprite = sprites.cell;
+
+  for (let i = 0; i < STACK_LENGTH; i++) {
+    let value = memory[STK + i];
+    let label = i === memory[SP] ? "STK" : i.toString().padStart(3);
+    drawCell(
+      i,
+      8,
+      sprite,
+      PURPLE_1,
+      label,
+      PURPLE_1,
+      value,
+      PURPLE_2,
+      i === memory[SP] ? UP | DOWN : 0,
+      PURPLE_2,
+    );
+  }
+}
+
+/**
  * Draw the states of the registers.
  */
 function drawRegisters() {
   let sprite = sprites.cell_register;
   drawCell(0, 7, sprite, YELLOW_1, "DAT", YELLOW_1, memory[DAT], YELLOW_2);
-  drawCell(0, 8, sprite, GRAY_1, "CYC", GRAY_2, memory[CYC], WHITE);
-  drawCell(1, 8, sprite, GRAY_1, "IP", GRAY_2, memory[IP], WHITE);
-  drawCell(2, 8, sprite, GRAY_1, "SP", GRAY_2, memory[SP], WHITE);
-  drawCell(3, 8, sprite, GRAY_1, "DBG", GRAY_2, memory[DBG], WHITE);
-
-  for (let i = 0; i < STACK_LENGTH; i++) {
-    let value = memory[STK + i];
-    let label = i === memory[SP] ? "STK" : i.toString().padStart(3);
-    drawCell(1 + i, 7, sprite, PURPLE_1, label, PURPLE_1, value, PURPLE_2);
-  }
+  drawCell(1, 7, sprite, GRAY_1, "CYC", GRAY_2, memory[CYC], WHITE);
+  drawCell(2, 7, sprite, GRAY_1, "IP", GRAY_2, memory[IP], WHITE);
+  drawCell(3, 7, sprite, GRAY_1, "SP", GRAY_2, memory[SP], WHITE);
+  drawCell(4, 7, sprite, GRAY_1, "DBG", GRAY_2, memory[DBG], WHITE);
 }
 
 /**
@@ -244,10 +262,8 @@ function render() {
     }
   }
 
-  // Registers
+  drawStack();
   drawRegisters();
-
-  // Debugger
   drawDebugger();
 
   // Cursor
