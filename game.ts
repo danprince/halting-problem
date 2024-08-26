@@ -61,6 +61,9 @@ const PURPLE_2 = "#813e93";
 const YELLOW_1 = "#684817";
 const YELLOW_2 = "#d7a12c";
 
+const REGISTERS_ROW = 14;
+const STACK_ROW = 15;
+
 /**
  * Snapshots of all previous memories.
  */
@@ -209,7 +212,7 @@ function drawStack() {
     let label = i === memory[SP] ? "STK" : i.toString().padStart(3);
     drawCell(
       i,
-      8,
+      STACK_ROW,
       sprite,
       PURPLE_1,
       label,
@@ -227,11 +230,12 @@ function drawStack() {
  */
 function drawRegisters() {
   let sprite = sprites.cell_register;
-  drawCell(0, 7, sprite, YELLOW_1, "DAT", YELLOW_1, memory[DAT], YELLOW_2);
-  drawCell(1, 7, sprite, GRAY_1, "CYC", GRAY_2, memory[CYC], WHITE);
-  drawCell(2, 7, sprite, GRAY_1, "IP", GRAY_2, memory[IP], WHITE);
-  drawCell(3, 7, sprite, GRAY_1, "SP", GRAY_2, memory[SP], WHITE);
-  drawCell(4, 7, sprite, GRAY_1, "DBG", GRAY_2, memory[DBG], WHITE);
+  let y = REGISTERS_ROW;
+  drawCell(0, y, sprite, YELLOW_1, "DAT", YELLOW_1, memory[DAT], YELLOW_2);
+  drawCell(1, y, sprite, GRAY_1, "CYC", GRAY_2, memory[CYC], WHITE);
+  drawCell(2, y, sprite, GRAY_1, "IP", GRAY_2, memory[IP], WHITE);
+  drawCell(3, y, sprite, GRAY_1, "SP", GRAY_2, memory[SP], WHITE);
+  drawCell(4, y, sprite, GRAY_1, "DBG", GRAY_2, memory[DBG], WHITE);
 }
 
 /**
