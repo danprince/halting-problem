@@ -121,9 +121,21 @@ export function pop(): number {
 
 /**
  * Fetch a part of an instruction.
+ * @param ptr The index of the instruction.
+ * @param offset The field to read from.
  */
-export function fetch(ptr: number, offset: number): number {
-  return memory[PRG + ptr * INSTR_WIDTH + offset];
+export function fetch(ptr: number, field: number): number {
+  return memory[PRG + ptr * INSTR_WIDTH + field];
+}
+
+/**
+ * Write to a field within an instruction.
+ * @param ptr The index of the instruction.
+ * @param offset The field to write to.
+ * @param value The value to write.
+ */
+export function store(ptr: number, field: number, value: number): void {
+  memory[PRG + ptr * INSTR_WIDTH + field] = value;
 }
 
 /**
