@@ -231,3 +231,10 @@ export function jump(ptr: number): boolean {
 export function cycle() {
   memory[CYC] += 1;
 }
+
+/**
+ * Reset the memory.
+ */
+export function reset() {
+  memory.fill(0);
+}
