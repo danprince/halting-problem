@@ -82,9 +82,21 @@ export function frame(
   ctx.strokeRect(x - 0.5, y - 0.5, w + 1, h + 1);
 }
 
-export function label(x: number, y: number, text: string) {
-  frame(x - 1, y - 1, text.length * GLYPH_WIDTH + 2, GLYPH_HEIGHT + 2);
-  write(x, y, text);
+export function label(
+  x: number,
+  y: number,
+  text: string,
+  color?: string,
+  frameColor?: string,
+) {
+  frame(
+    x - 1,
+    y - 1,
+    text.length * GLYPH_WIDTH + 2,
+    GLYPH_HEIGHT + 2,
+    frameColor,
+  );
+  write(x, y, text, color);
 }
 
 export function draw(sprite: Sprite, x: number, y: number, color?: string) {
