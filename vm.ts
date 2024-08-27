@@ -91,8 +91,9 @@ export function dump() {
 /**
  * Load new memory.
  */
-export function load(mem: Uint8ClampedArray) {
-  memory = mem;
+export function load(mem: Iterable<number>) {
+  // Copy the memory so that we're not mutating it
+  memory = new Uint8ClampedArray(mem);
 }
 
 /**
