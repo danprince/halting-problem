@@ -1,6 +1,6 @@
 import { clear, draw, label, resize, Sprite, write } from "./canvas";
+import { tutorial01 } from "./programs";
 import * as sprites from "./sprites";
-import { pick, random } from "./utils";
 import {
   GET,
   SET,
@@ -380,26 +380,11 @@ function dispatch(command: number) {
   if (memory[STA] === HALTED) {
     // TODO: Move to the next level
     init();
-    render();
   }
 }
 
 function init() {
-  // Reset memory
-  reset();
-
-  for (let i = 0; i < PROGRAM_SIZE; i += INSTR_WIDTH) {
-    let mode = pick(ADDRESS_MODE, IMMEDIATE_MODE);
-    let opcode = pick(NIL, NOP, random(END + 1));
-    let operand = mode === ADDRESS_MODE ? pick(DAT, STK) : random(100);
-    let dirs = pick(0, UP, LEFT, RIGHT, DOWN);
-
-    let ptr = PRG + i;
-    memory[ptr + INSTR_OPCODE] = opcode;
-    memory[ptr + INSTR_OPERAND] = operand;
-    memory[ptr + INSTR_MODE] = mode;
-    memory[ptr + INSTR_DIRS] = dirs;
-  }
+  load(tutorial01);
 }
 
 function loop() {
