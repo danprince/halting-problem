@@ -1,4 +1,5 @@
 // REGISTERS
+export const STA = 0; // Status flag
 export const IP = 1; // Instruction pointer
 export const SP = 2; // Stack pointer
 export const CYC = 3; // Cycles register
@@ -22,6 +23,10 @@ export const TLT = 0x8; // Test if DBG is less than a value
 export const TGT = 0x9; // Test if DBG is greater than a value
 export const SND = 0xa; // Send DBG into a port
 export const END = 0xb; // Halt the program
+
+// STATUSES
+export const RUNNING = 0;
+export const HALTED = 1;
 
 // DIRECTIONS
 export const RIGHT = 0b0001;
@@ -50,7 +55,7 @@ export const MEMORY_SIZE = PRG + PROGRAM_SIZE;
  * Virtual machines have the following memory layout.
  *
  * ```txt
- * | 0 | 0xD | Magic number
+ * | 0 | STA | Status flag
  * | 1 | IP  | Instruction pointer
  * | 2 | SP  | Stack pointer
  * | 3 | DBG | Value of the DBG register
@@ -139,6 +144,10 @@ export function exec(ptr: number): boolean {
   }
 
   switch (opcode) {
+    case END:
+      memory[STA] = HALTED;
+      return true;
+
     case NIL:
       return false;
 
