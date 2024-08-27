@@ -501,9 +501,7 @@ export function editor(event: KeyboardEvent) {
     snapshot[STA] = RUNNING; // reset halt state
     console.info("📋 Program copied to clipboard!");
     console.info(snapshot);
-    navigator.clipboard.writeText(
-      `new Uint8ClampedArray(${JSON.stringify([...snapshot])})`,
-    );
+    navigator.clipboard.writeText(JSON.stringify([...snapshot]));
   }
 
   if (editingMode === "grid") {
