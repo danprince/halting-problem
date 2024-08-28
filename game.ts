@@ -311,6 +311,8 @@ function drawDebugger() {
 
 function drawEditorInfo() {
   if (!editingMode) return;
+  // Don't show anything if the pointer is out of bounds
+  if (editPointer >= PROGRAM_LENGTH) return;
 
   let opcode = fetch(editPointer, INSTR_OPCODE);
   let operand = fetch(editPointer, INSTR_OPERAND);
