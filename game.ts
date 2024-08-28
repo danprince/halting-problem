@@ -220,7 +220,7 @@ function drawInstruction(x: number, y: number) {
   }
 
   if (highlight) {
-    color = editingMode === "cell" ? YELLOW_2 : GRAY_2;
+    color = editingMode === "cell" ? WHITE : GRAY_2;
   }
 
   // In edit mode we need to be able to see NIL instructions
@@ -240,8 +240,10 @@ function drawInstruction(x: number, y: number) {
     sprite = sprites.cell_halt;
   }
 
-  if (opcode === NOP || opcode === END || opcode === SND) {
+  if (opcode === NOP || opcode === SND) {
     value = "";
+  } else if (opcode === END) {
+    value = "0xD";
   } else if (mode === ADDRESS_MODE || opcode === SWP || opcode === SET) {
     value = operandInfo?.label;
   } else if (mode === IMMEDIATE_MODE) {
@@ -249,6 +251,7 @@ function drawInstruction(x: number, y: number) {
   }
 
   let labelColor = opcode === END ? BLUE_2 : GRAY_2;
+  let valueColor = opcode === END ? BLUE_1 : WHITE;
 
   drawCell(
     x,
@@ -258,7 +261,7 @@ function drawInstruction(x: number, y: number) {
     name!,
     labelColor,
     value,
-    "white",
+    valueColor,
     dirs,
     "gray",
   );
