@@ -284,12 +284,10 @@ function drawTxtInstruction(x: number, y: number) {
   let missing = !text;
   if (missing) text = "Text is missing from level definition";
 
-  if (missing) {
-    drawCell(x, y, sprites.cell, GRAY_1, "TXT", RED_2, "ERR", RED_1);
-  } else {
-    let serial = index.toString().padStart(3, "0");
-    drawCell(x, y, sprites.cell, GRAY_1, "TXT", BLUE_2, serial, BLUE_1);
-  }
+  let color = missing ? RED_2 : BLUE_2;
+  let altColor = missing ? RED_1 : BLUE_1;
+  let serial = index.toString().padStart(3, "0");
+  drawCell(x, y, sprites.cell, GRAY_1, "TXT", color, serial, altColor);
 
   // If the debugger is on the label, show its text
   if (memory[IP] === ptr) {
