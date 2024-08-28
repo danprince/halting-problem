@@ -23,6 +23,7 @@ export const TLT = 0x8; // Test if DBG is less than a value
 export const TGT = 0x9; // Test if DBG is greater than a value
 export const SND = 0xa; // Send DBG into a port
 export const END = 0xb; // Halt the program
+export const TXT = 0xc; // A text marker
 
 // STATUSES
 export const RUNNING = 0;
@@ -165,6 +166,7 @@ export function exec(ptr: number): boolean {
       return false;
 
     case NOP:
+    case TXT:
       return true;
 
     case GET:

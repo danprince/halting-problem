@@ -48,6 +48,7 @@ import {
   STA,
   HALTED,
   RUNNING,
+  TXT,
 } from "./vm";
 
 // RENDERING
@@ -126,6 +127,7 @@ let OPCODES: {
   [TGT]: { label: "TGT", hint: "TEST IF DEBUGGER IS GREATER THAN" },
   [SND]: { label: "SND", hint: "SEND VALUE" },
   [END]: { label: "END", hint: "END PROGRAM" },
+  [TXT]: { label: "TXT", hint: "HINT" },
 };
 
 /**
@@ -196,6 +198,12 @@ function drawInstruction(x: number, y: number) {
   let operand = fetch(ptr, INSTR_OPERAND);
   let mode = fetch(ptr, INSTR_MODE);
   let dirs = fetch(ptr, INSTR_DIRS);
+
+  // TXT instructions have very specific rendering
+  if (opcode === TXT) {
+    return drawTxtInstruction(x, y);
+  }
+
   let color = GRAY_1;
 
   // Add a flashing border if we're editing this instruction
@@ -249,6 +257,34 @@ function drawInstruction(x: number, y: number) {
     dirs,
     "gray",
   );
+}
+
+function drawTxtInstruction(x: number, y: number) {
+  let ptr = x + y * PROGRAM_COLS;
+  let operand = fetch(ptr, INSTR_OPERAND);
+
+  // The first 4 bits are the index of the label.
+  let index = operand & 0b1111;
+  // TODO: Do the other label behaviours later
+  // The next 4 bits specify the label's alignment.
+  //let align = (operand >> 4) & 0b1111;
+  // The next 4 bits specify the label's trigger.
+  //let trigger = (operand >> 8) & 0b1111;
+
+  let text = currentLevel.labels[index];
+
+  // The label doesn't map to any level provided text. Just ignore it.
+  if (!text) return;
+
+  let serial = index.toString().padStart(3, "0");
+  drawCell(x, y, sprites.cell, GRAY_1, "TXT", BLUE_2, serial, BLUE_1);
+
+  // If the debugger is on the label, show its text
+  if (memory[IP] === ptr) {
+    let dx = (x + 0.5) * CELL_SIZE_PIXELS;
+    let dy = (y - 0.5) * CELL_SIZE_PIXELS;
+    label(dx, dy, text, WHITE, BLUE_2, "center");
+  }
 }
 
 /**

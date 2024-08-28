@@ -88,15 +88,17 @@ export function label(
   text: string,
   color?: string,
   frameColor?: string,
+  align: "left" | "center" | "right" = "left",
 ) {
-  frame(
-    x - 1,
-    y - 1,
-    text.length * GLYPH_WIDTH + 2,
-    GLYPH_HEIGHT + 2,
-    frameColor,
-  );
-  write(x, y, text, color);
+  let textWidth = text.length * GLYPH_WIDTH;
+  let textHeight = GLYPH_HEIGHT;
+  let frameWidth = textWidth + 2;
+  let frameHeight = textHeight + 2;
+  if (align === "center") x -= frameWidth / 2;
+  if (align === "right") x -= frameWidth;
+  (x |= 0), (y |= 0);
+  frame(x, y, frameWidth, frameHeight, frameColor);
+  write(x + 1, y + 1, text, color);
 }
 
 export function draw(sprite: Sprite, x: number, y: number, color?: string) {
