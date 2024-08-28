@@ -470,7 +470,18 @@ onpointermove = (event) => {
 onkeydown = (event) => {
   let { key } = event;
 
-  // Forward all events to editor during edit mode if we're in development.
+  // Export the current program to the console
+  if (key === "e") {
+    let snapshot = dump();
+    snapshot[CYC] = 0; // reset cycles
+    snapshot[STA] = RUNNING; // reset halt state
+    console.groupCollapsed("📋 Program copied to clipboard!");
+    console.log(snapshot);
+    console.groupEnd();
+    navigator.clipboard.writeText(JSON.stringify([...snapshot]));
+  }
+
+  // Forward all other events to editor during edit mode.
   if (editingMode) {
     return editor(event);
   }
@@ -482,17 +493,6 @@ onkeydown = (event) => {
   if (key === "I") {
     editingMode = "cell";
     editPointer = memory[IP];
-  }
-
-  // Export the current program to the console
-  if (key === "e") {
-    let snapshot = dump();
-    snapshot[CYC] = 0; // reset cycles
-    snapshot[STA] = RUNNING; // reset halt state
-    console.groupCollapsed("📋 Program copied to clipboard!");
-    console.log(snapshot);
-    console.groupEnd();
-    navigator.clipboard.writeText(JSON.stringify([...snapshot]));
   }
 
   if (key === "h" || key === "ArrowLeft") dispatch(LEFT);
