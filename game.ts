@@ -492,7 +492,10 @@ onkeydown = (event) => {
   }
 
   // i to enter grid editing mode
-  if (key === "i") editingMode = "grid";
+  if (key === "i") {
+    editingMode = "grid";
+    editPointer = memory[IP];
+  }
 
   // I to enter cell editing mode
   if (key === "I") {
