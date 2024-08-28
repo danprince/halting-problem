@@ -378,8 +378,8 @@ function render() {
   clear();
 
   // Instructions
-  for (let x = 0; x < PROGRAM_COLS; x++) {
-    for (let y = 0; y < PROGRAM_ROWS; y++) {
+  for (let y = 0; y < PROGRAM_ROWS; y++) {
+    for (let x = 0; x < PROGRAM_COLS; x++) {
       drawInstruction(x, y);
     }
   }
