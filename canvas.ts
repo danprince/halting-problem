@@ -109,9 +109,9 @@ export function draw(sprite: Sprite, x: number, y: number, color?: string) {
 }
 
 let codepage = Array.from({ length: 122 }).map((_, code: number) => {
-  if (code < 65) return code - 48;
-  if (code < 97) return code - 55;
-  return code - 87;
+  if (code > 123) return code - 65; // {|}~
+  if (code > 96) return code - 65; // abc...
+  return code - 33;
 });
 
 export function write(x: number, y: number, text: string, color?: string) {
