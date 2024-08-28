@@ -314,9 +314,7 @@ function drawStack() {
       label,
       PURPLE_1,
       value,
-      PURPLE_2,
-      i === memory[SP] ? UP | DOWN : 0,
-      PURPLE_2,
+      i <= memory[SP] ? PURPLE_2 : PURPLE_1,
     );
   }
 }
