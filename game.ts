@@ -236,6 +236,10 @@ function drawInstruction(x: number, y: number) {
   let name = opcodeInfo?.label;
   let value: string | number | undefined;
 
+  if (opcode === END) {
+    sprite = sprites.cell_halt;
+  }
+
   if (opcode === NOP || opcode === END || opcode === SND) {
     value = "";
   } else if (mode === ADDRESS_MODE || opcode === SWP || opcode === SET) {
