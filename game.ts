@@ -127,32 +127,32 @@ let editYankRegister = new Uint8Array(4);
  * Opcode info lookup.
  */
 let OPCODES: {
-  [opcode: string]: { label: string; hint: string } | undefined;
+  [opcode: string]: { label: string } | undefined;
 } = {
-  [GET]: { label: "LOD", hint: "READ VALUE INTO DEBUGGER" },
-  [SET]: { label: "MOV", hint: "WRITE VALUE FROM DEBUGGER" },
-  [SWP]: { label: "SWP", hint: "SWAP VALUE WITH DEBUGGER" },
-  [ADD]: { label: "ADD", hint: "ADD VALUE TO DEBUGGER" },
-  [SUB]: { label: "SUB", hint: "SUB VALUE FROM DEBUGGER" },
-  [TEQ]: { label: "TEQ", hint: "TEST IF DEBUGGER IS EQUAL" },
-  [TLT]: { label: "TLT", hint: "TEST IF DEBUGGER IS LESS THAN" },
-  [TGT]: { label: "TGT", hint: "TEST IF DEBUGGER IS GREATER THAN" },
-  [SND]: { label: "SND", hint: "SEND VALUE" },
-  [END]: { label: "END", hint: "END PROGRAM" },
-  [TXT]: { label: "TXT", hint: "HINT" },
+  [GET]: { label: "LOD" },
+  [SET]: { label: "MOV" },
+  [SWP]: { label: "SWP" },
+  [ADD]: { label: "ADD" },
+  [SUB]: { label: "SUB" },
+  [TEQ]: { label: "TEQ" },
+  [TLT]: { label: "TLT" },
+  [TGT]: { label: "TGT" },
+  [SND]: { label: "SND" },
+  [END]: { label: "END" },
+  [TXT]: { label: "TXT" },
 };
 
 /**
  * Register info lookup.
  */
 let REGISTERS: {
-  [name: string]: { label: string; hint: string } | undefined;
+  [name: string]: { label: string } | undefined;
 } = {
-  [DAT]: { label: "DAT", hint: "" },
-  [STK]: { label: "STK", hint: "" },
-  [CYC]: { label: "CYC", hint: "" },
-  [IP]: { label: "IP", hint: "" },
-  [SP]: { label: "SP", hint: "" },
+  [DAT]: { label: "DAT" },
+  [STK]: { label: "STK" },
+  [CYC]: { label: "CYC" },
+  [IP]: { label: "IP" },
+  [SP]: { label: "SP" },
 };
 
 /**
