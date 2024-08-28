@@ -11,6 +11,7 @@ import {
 } from "./canvas";
 import { Level, levels } from "./levels";
 import * as sprites from "./sprites";
+import { cycle } from "./utils";
 import {
   GET,
   SET,
@@ -52,7 +53,6 @@ import {
   fetch,
   dump,
   load,
-  cycle,
   reset,
   store,
   STA,
@@ -150,6 +150,9 @@ let REGISTERS: {
 } = {
   [DAT]: { label: "DAT", hint: "" },
   [STK]: { label: "STK", hint: "" },
+  [CYC]: { label: "CYC", hint: "" },
+  [IP]: { label: "IP", hint: "" },
+  [SP]: { label: "SP", hint: "" },
 };
 
 /**
@@ -497,7 +500,7 @@ function dispatch(command: number) {
 
   if (ok) {
     history.push(snapshot);
-    cycle();
+    memory[CYC] += 1;
   }
 }
 
@@ -699,7 +702,9 @@ export function editor(event: KeyboardEvent) {
     // up/down rotate known addresses in address mode
     if (mode === ADDRESS_MODE) {
       if (key === "k" || key === "j") {
-        store(editPointer, INSTR_OPERAND, operand === STK ? DAT : STK);
+        let step = key === "k" ? -1 : 1;
+        let addr = cycle([DAT, STK, CYC, IP, SP], operand, step);
+        store(editPointer, INSTR_OPERAND, addr);
       }
     }
 

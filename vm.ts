@@ -229,13 +229,6 @@ export function jump(ptr: number): boolean {
 }
 
 /**
- * Increase the cycles.
- */
-export function cycle() {
-  memory[CYC] += 1;
-}
-
-/**
  * Reset the memory.
  */
 export function reset() {
