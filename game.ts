@@ -229,11 +229,6 @@ function drawInstruction(x: number, y: number) {
     color = BLUE_1;
   }
 
-  // In edit mode we need to be able to see NIL instructions
-  if (editingMode && opcode === NIL && ptr === editPointer) {
-    drawCell(x, y, sprites.cell, color, "", "", "", "");
-  }
-
   // NIL instructions are invisible (can't enter them)
   if (opcode === NIL) return;
 
@@ -385,9 +380,9 @@ function drawEditorInfo() {
   // Add a flashing border to the instruction we're editing
   {
     let x = editPointer % PROGRAM_COLS;
-    let y = editPointer / PROGRAM_COLS | 0;
+    let y = (editPointer / PROGRAM_COLS) | 0;
     let t = performance.now();
-    let highlight = t % 400 > 200;
+    let highlight = t % 800 > 300;
     if (highlight) {
       drawCell(x, y, sprites.cell, WHITE, "", "", "", "");
     }
