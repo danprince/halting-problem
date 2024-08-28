@@ -116,7 +116,7 @@ let editPointer: number = 0;
  * Whether we're currently editing the grid or a specific cell or not editing
  * at all.
  */
-let editingMode: "grid" | "cell" | undefined;
+let editingMode: "grid" | undefined;
 
 /**
  * Register where instructions are "yanked" to, during edit mode.
@@ -234,7 +234,7 @@ function drawInstruction(x: number, y: number) {
   }
 
   if (highlight) {
-    color = editingMode === "cell" ? WHITE : GRAY_2;
+    color = GRAY_2;
   }
 
   // In edit mode we need to be able to see NIL instructions
@@ -380,20 +380,12 @@ function drawEditorInfo() {
 
   // Raw instruction hex values for debugging
   let text = `${hex(opcode)} ${hex(operand)} ${hex(mode)} ${hex(dirs)}`;
-  let color = editingMode === "cell" ? GRAY_2 : GRAY_1;
-  let frameColor = GRAY_1;
   let y = c.height - 50;
 
   // Address
-  label(2, y, hex(editPointer), GRAY_2, frameColor);
+  label(2, y, hex(editPointer), GRAY_2, GRAY_1);
   // Raw instruction
-  label(24, y, text, color, frameColor);
-
-  if (editingMode === "grid") {
-    label(106, y, "ENTER", GRAY_1, GRAY_1);
-  } else {
-    label(106, y, "ESC", GRAY_1, GRAY_1);
-  }
+  label(24, y, text, GRAY_2, GRAY_1);
 }
 
 function getScore(level: Level, cycles: number): 0 | 1 | 2 | 3 {
@@ -575,12 +567,6 @@ onkeydown = (event) => {
     editPointer = memory[IP];
   }
 
-  // I to enter cell editing mode
-  if (key === "I") {
-    editingMode = "cell";
-    editPointer = memory[IP];
-  }
-
   if (key === "h" || key === "ArrowLeft") dispatch(LEFT);
   if (key === "j" || key === "ArrowDown") dispatch(DOWN);
   if (key === "k" || key === "ArrowUp") dispatch(UP);
@@ -645,76 +631,68 @@ export function editor(event: KeyboardEvent) {
   // @ to move the debugger here
   if (key === "@") memory[IP] = editPointer;
 
-  if (editingMode === "grid") {
-    // escape to leave editing mode
-    if (key === "Escape") editingMode = undefined;
+  // escape to leave editing mode
+  if (key === "Escape") editingMode = undefined;
 
-    // enter to switch to cell editing mode
-    if (key === "Enter") editingMode = "cell";
+  // hjkl move the editing cursor in grid mode
+  if (key === "h") editPointer -= 1;
+  if (key === "l") editPointer += 1;
+  if (key === "j") editPointer += PROGRAM_COLS;
+  if (key === "k") editPointer -= PROGRAM_COLS;
 
-    // hjkl move the editing cursor in grid mode
-    if (key === "h") editPointer -= 1;
-    if (key === "l") editPointer += 1;
-    if (key === "j") editPointer += PROGRAM_COLS;
-    if (key === "k") editPointer -= PROGRAM_COLS;
+  // space toggles instructions between on/off
+  if (key === " ") store(editPointer, INSTR_OPCODE, opcode === NIL ? NOP : NIL);
 
-    // space toggles instructions between on/off
-    if (key === " ")
-      store(editPointer, INSTR_OPCODE, opcode === NIL ? NOP : NIL);
+  // arrow keys to edit the stack
+  if (key === "ArrowLeft") memory[SP] -= 1;
+  if (key === "ArrowRight") memory[SP] += 1;
+  if (key === "ArrowUp") memory[STK + memory[SP]] += shift ? 10 : 1;
+  if (key === "ArrowDown") memory[STK + memory[SP]] -= shift ? 10 : 1;
 
-    // arrow keys to edit the stack
-    if (key === "ArrowLeft") memory[SP] -= 1;
-    if (key === "ArrowRight") memory[SP] += 1;
-    if (key === "ArrowUp") memory[STK + memory[SP]] += shift ? 10 : 1;
-    if (key === "ArrowDown") memory[STK + memory[SP]] -= shift ? 10 : 1;
+  // + and - to edit DAT
+  if (key === "-" || key === "_") memory[DAT] -= shift ? 10 : 1;
+  if (key === "+" || key === "=") memory[DAT] += shift ? 10 : 1;
 
-    // + and - to edit DAT
-    if (key === "-" || key === "_") memory[DAT] -= shift ? 10 : 1;
-    if (key === "+" || key === "=") memory[DAT] += shift ? 10 : 1;
+  // < and > to edit DBG
+  if (key === "<" || key === ",") memory[DBG] -= shift ? 10 : 1;
+  if (key === ">" || key === ".") memory[DBG] += shift ? 10 : 1;
 
-    // < and > to edit DBG
-    if (key === "<" || key === ",") memory[DBG] -= shift ? 10 : 1;
-    if (key === ">" || key === ".") memory[DBG] += shift ? 10 : 1;
-  } else if (editingMode === "cell") {
-    // escape/enter to leave cell mode.
-    if (key === "Escape" || key === "Enter") editingMode = "grid";
+  // ctrl-p and ctrl+n change opcode
+  if (ctrl && (key === "p" || key === "n")) {
+    let step = key === "p" ? -1 : 1;
+    let codes = [NOP, GET, SET, SWP, ADD, SUB, TEQ, TLT, TGT, SND, TXT, END];
+    let code = cycle(codes, opcode, step);
+    store(editPointer, INSTR_OPCODE, code);
+  }
 
-    // left/right change opcode (TODO: cycle around)
-    if (key === "h") store(editPointer, INSTR_OPCODE, opcode - 1);
-    if (key === "l") store(editPointer, INSTR_OPCODE, opcode + 1);
+  // Prevent accidentally editing operands/modes for commands that don't
+  // support them.
+  if (opcode === NIL || opcode === NOP || opcode === SWP || opcode === SND)
+    return;
 
-    // Prevent accidentally editing operands/modes for commands that don't
-    // support them.
-    if (opcode === NIL || opcode === NOP || opcode === SWP || opcode === SND)
-      return;
+  // ctrl-a and ctrl-x change operand in immediate mode
+  if (mode === IMMEDIATE_MODE) {
+    if (ctrl && key === "a") store(editPointer, INSTR_OPERAND, operand + 1);
+    if (ctrl && key === "x") store(editPointer, INSTR_OPERAND, operand - 1);
+    if (ctrl && key === "A") store(editPointer, INSTR_OPERAND, operand + 10);
+    if (ctrl && key === "X") store(editPointer, INSTR_OPERAND, operand - 10);
+  }
 
-    // up/down decreases operand value in immediate mode
-    if (mode === IMMEDIATE_MODE) {
-      if (ctrl && key === "a") store(editPointer, INSTR_OPERAND, operand + 1);
-      if (key === "k") store(editPointer, INSTR_OPERAND, operand + 1);
-      if (key === "K") store(editPointer, INSTR_OPERAND, operand + 10);
-
-      if (ctrl && key === "x") store(editPointer, INSTR_OPERAND, operand - 1);
-      if (key === "j") store(editPointer, INSTR_OPERAND, operand - 1);
-      if (key === "J") store(editPointer, INSTR_OPERAND, operand - 10);
+  // ctrl-a and ctrl-x change register in address mode
+  if (mode === ADDRESS_MODE) {
+    if ((ctrl && key === "a") || (ctrl && key === "x")) {
+      let step = key === "a" ? -1 : 1;
+      let addr = cycle([DAT, STK, CYC, IP, SP], operand, step);
+      store(editPointer, INSTR_OPERAND, addr);
     }
+  }
 
-    // up/down rotate known addresses in address mode
-    if (mode === ADDRESS_MODE) {
-      if (key === "k" || key === "j") {
-        let step = key === "k" ? -1 : 1;
-        let addr = cycle([DAT, STK, CYC, IP, SP], operand, step);
-        store(editPointer, INSTR_OPERAND, addr);
-      }
-    }
-
-    // m toggles the mode of the current instruction
-    if (key === "m") {
-      let newMode = mode === ADDRESS_MODE ? IMMEDIATE_MODE : ADDRESS_MODE;
-      let operand = newMode === ADDRESS_MODE ? DAT : 0;
-      store(editPointer, INSTR_MODE, newMode);
-      store(editPointer, INSTR_OPERAND, operand);
-    }
+  // m toggles the mode of the current instruction
+  if (key === "m") {
+    let newMode = mode === ADDRESS_MODE ? IMMEDIATE_MODE : ADDRESS_MODE;
+    let operand = newMode === ADDRESS_MODE ? DAT : 0;
+    store(editPointer, INSTR_MODE, newMode);
+    store(editPointer, INSTR_OPERAND, operand);
   }
 }
 
