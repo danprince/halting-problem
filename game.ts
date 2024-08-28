@@ -13,8 +13,8 @@ import { Level, levels } from "./levels";
 import * as sprites from "./sprites";
 import { cycle, runLengthDecode, runLengthEncode } from "./utils";
 import {
-  GET,
-  SET,
+  LOD,
+  SAV,
   SWP,
   ADD,
   SUB,
@@ -129,8 +129,8 @@ let editYankRegister = new Uint8Array(4);
 let OPCODES: {
   [opcode: string]: { label: string } | undefined;
 } = {
-  [GET]: { label: "LOD" },
-  [SET]: { label: "MOV" },
+  [LOD]: { label: "LOD" },
+  [SAV]: { label: "MOV" },
   [SWP]: { label: "SWP" },
   [ADD]: { label: "ADD" },
   [SUB]: { label: "SUB" },
@@ -245,7 +245,7 @@ function drawInstruction(x: number, y: number) {
     value = "";
   } else if (opcode === END) {
     value = "0xD";
-  } else if (mode === ADDRESS_MODE || opcode === SWP || opcode === SET) {
+  } else if (mode === ADDRESS_MODE || opcode === SWP || opcode === SAV) {
     value = operandInfo?.label;
   } else if (mode === IMMEDIATE_MODE) {
     value = operand;
@@ -662,7 +662,7 @@ export function editor(event: KeyboardEvent) {
   // ctrl-p and ctrl+n change opcode
   if (ctrl && (key === "p" || key === "n")) {
     let step = key === "p" ? -1 : 1;
-    let codes = [NOP, GET, SET, SWP, ADD, SUB, TEQ, TLT, TGT, SND, TXT, END];
+    let codes = [NOP, LOD, SAV, SWP, ADD, SUB, TEQ, TLT, TGT, SND, TXT, END];
     let code = cycle(codes, opcode, step);
     store(editPointer, INSTR_OPCODE, code);
   }

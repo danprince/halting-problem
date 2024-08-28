@@ -13,8 +13,8 @@ export const PRG = 24; // Program starts at this address
 // OPCODES
 export const NIL = 0x0; // Nothing here
 export const NOP = 0x1; // Do nothing
-export const GET = 0x2; // Move a value into DBG
-export const SET = 0x3; // Move DBG into a register
+export const LOD = 0x2; // Load a value into DBG
+export const SAV = 0x3; // Save DBG into a register
 export const SWP = 0x4; // Swap DBG with a register
 export const ADD = 0x5; // Add a value to DBG
 export const SUB = 0x6; // Sub a value from DBG
@@ -169,11 +169,11 @@ export function exec(ptr: number): boolean {
     case TXT:
       return true;
 
-    case GET:
+    case LOD:
       memory[DBG] = value;
       return true;
 
-    case SET: {
+    case SAV: {
       if (operand === STK) {
         push(memory[DBG]);
       } else {
