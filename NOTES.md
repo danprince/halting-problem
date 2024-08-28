@@ -44,3 +44,9 @@ Game starts at a terminal where the user can type commands (beginning with a pro
 
 ## Manual
 Make a Zachtronics-esque manual to explain the instruction set and the memory layout.
+
+## Levels
+Levels and programs should be distinct. A program is just the memory you load up and play in, whereas a level should have a bunch of extra metadata.
+- A file name for the level
+- Labels that can correspond to `LBL` instructions which show information.
+- The goal number of cycles to complete the level within.

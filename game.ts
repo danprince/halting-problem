@@ -1,5 +1,5 @@
 import { clear, draw, label, resize, Sprite, write } from "./canvas";
-import { tutorial01 } from "./programs";
+import * as levels from "./programs";
 import * as sprites from "./sprites";
 import {
   GET,
@@ -68,6 +68,30 @@ const YELLOW_2 = "#d7a12c";
 
 const REGISTERS_ROW = 14;
 const STACK_ROW = 15;
+
+type LevelId = keyof typeof levels;
+const startLevelId: LevelId = "tutorial01";
+
+function getCurrentLevelId(): LevelId {
+  let storedId = localStorage.currentLevelId;
+  if (storedId in levels) return storedId;
+  return startLevelId;
+}
+
+function getCurrentLevel() {
+  return levels[getCurrentLevelId()];
+}
+
+function getNextLevelId() {
+  let currentLevelId = getCurrentLevelId();
+  let ids = Object.keys(levels) as LevelId[];
+  let id = ids[ids.indexOf(currentLevelId) + 1] ?? startLevelId;
+  return (localStorage.currentLevelId = id);
+}
+
+function goToNextLevel() {
+  localStorage.currentLevelId = getNextLevelId();
+}
 
 /**
  * Snapshots of all previous memories.
@@ -196,7 +220,7 @@ function drawInstruction(x: number, y: number) {
   }
 
   if (highlight) {
-    color = editingMode === "cell" ? WHITE : GRAY_2;
+    color = editingMode === "cell" ? YELLOW_2 : GRAY_2;
   }
 
   // In edit mode we need to be able to see NIL instructions
@@ -378,13 +402,14 @@ function dispatch(command: number) {
   }
 
   if (memory[STA] === HALTED) {
-    // TODO: Move to the next level
+    goToNextLevel();
     init();
   }
 }
 
 function init() {
-  load(tutorial01);
+  let level = getCurrentLevel();
+  load(level);
 }
 
 function loop() {
@@ -428,6 +453,17 @@ onkeydown = (event) => {
   if (key === "I") {
     editingMode = "cell";
     editPointer = memory[IP];
+  }
+
+  // Export the current program to the console
+  if (key === "e") {
+    let snapshot = dump();
+    snapshot[CYC] = 0; // reset cycles
+    snapshot[STA] = RUNNING; // reset halt state
+    console.groupCollapsed("📋 Program copied to clipboard!");
+    console.log(snapshot);
+    console.groupEnd();
+    navigator.clipboard.writeText(JSON.stringify([...snapshot]));
   }
 
   if (key === "h" || key === "ArrowLeft") dispatch(LEFT);
@@ -493,16 +529,6 @@ export function editor(event: KeyboardEvent) {
 
   // @ to move the debugger here
   if (key === "@") memory[IP] = editPointer;
-
-  // Export the current program to the console
-  if (key === "e") {
-    let snapshot = dump();
-    snapshot[CYC] = 0; // reset cycles
-    snapshot[STA] = RUNNING; // reset halt state
-    console.info("📋 Program copied to clipboard!");
-    console.info(snapshot);
-    navigator.clipboard.writeText(JSON.stringify([...snapshot]));
-  }
 
   if (editingMode === "grid") {
     // escape to leave editing mode
