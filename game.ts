@@ -78,7 +78,7 @@ let currentLevel: Level =
   levels[0];
 
 function goToNextLevel() {
-  let nextLevel = levels[levels.indexOf(currentLevel) + 1];
+  let nextLevel = levels[levels.indexOf(currentLevel) + 1] ?? levels[0];
 
   if (nextLevel) {
     localStorage.currentLevelId = nextLevel.id;
