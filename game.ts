@@ -49,6 +49,7 @@ import {
   HALTED,
   RUNNING,
   TXT,
+  PROGRAM_LENGTH,
 } from "./vm";
 
 // RENDERING
@@ -348,7 +349,7 @@ function drawDebugger() {
 function drawEditorInfo() {
   if (!editingMode) return;
   // Don't show anything if the pointer is out of bounds
-  if (editPointer >= PROGRAM_LENGTH) return;
+  if (editPointer < 0 || editPointer >= PROGRAM_LENGTH) return;
 
   let opcode = fetch(editPointer, INSTR_OPCODE);
   let operand = fetch(editPointer, INSTR_OPERAND);
