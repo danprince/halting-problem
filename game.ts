@@ -221,20 +221,12 @@ function drawInstruction(x: number, y: number) {
 
   let color = GRAY_1;
 
-  // Add a flashing border if we're editing this instruction
-  let t = performance.now();
-  let highlight = editingMode && ptr === editPointer && t % 400 > 200;
-
   let sprite = sprites.cell;
 
   if (opcode >= TEQ && opcode <= TGT) {
     color = exec(ptr) ? GREEN_1 : RED_1;
   } else if (opcode === END) {
     color = BLUE_1;
-  }
-
-  if (highlight) {
-    color = GRAY_2;
   }
 
   // In edit mode we need to be able to see NIL instructions
@@ -389,6 +381,17 @@ function drawEditorInfo() {
   label(2, y, hex(editPointer), GRAY_2, GRAY_1);
   // Raw instruction
   label(24, y, text, GRAY_2, GRAY_1);
+
+  // Add a flashing border to the instruction we're editing
+  {
+    let x = editPointer % PROGRAM_COLS;
+    let y = editPointer / PROGRAM_COLS | 0;
+    let t = performance.now();
+    let highlight = t % 400 > 200;
+    if (highlight) {
+      drawCell(x, y, sprites.cell, WHITE, "", "", "", "");
+    }
+  }
 }
 
 function getScore(level: Level, cycles: number): 0 | 1 | 2 | 3 {
