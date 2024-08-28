@@ -22,8 +22,8 @@ export const TEQ = 0x7; // Test if DBG is equal to a value
 export const TLT = 0x8; // Test if DBG is less than a value
 export const TGT = 0x9; // Test if DBG is greater than a value
 export const SND = 0xa; // Send DBG into a port
-export const END = 0xb; // Halt the program
-export const TXT = 0xc; // A text marker
+export const TXT = 0xb; // A text marker
+export const END = 0xd; // Halt the program
 
 // STATUSES
 export const RUNNING = 0;
