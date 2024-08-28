@@ -294,18 +294,21 @@ function drawTxtInstruction(x: number, y: number) {
   //let trigger = (operand >> 8) & 0b1111;
 
   let text = currentLevel.labels[index];
+  let missing = !text;
+  if (missing) text = "Text is missing from level definition";
 
-  // The label doesn't map to any level provided text. Just ignore it.
-  if (!text) return;
-
-  let serial = index.toString().padStart(3, "0");
-  drawCell(x, y, sprites.cell, GRAY_1, "TXT", BLUE_2, serial, BLUE_1);
+  if (missing) {
+    drawCell(x, y, sprites.cell, GRAY_1, "TXT", RED_2, "ERR", RED_1);
+  } else {
+    let serial = index.toString().padStart(3, "0");
+    drawCell(x, y, sprites.cell, GRAY_1, "TXT", BLUE_2, serial, BLUE_1);
+  }
 
   // If the debugger is on the label, show its text
   if (memory[IP] === ptr) {
     let dx = (x + 0.5) * CELL_SIZE_PIXELS;
     let dy = (y - 0.5) * CELL_SIZE_PIXELS;
-    label(dx, dy, text, WHITE, BLUE_2, "center");
+    label(dx, dy, text, WHITE, missing ? RED_2 : BLUE_2, "center");
   }
 }
 
