@@ -5,8 +5,9 @@ declare global {
 }
 
 const SCALE_MIN = 3.5;
-const GLYPH_WIDTH = 4;
-const GLYPH_HEIGHT = 5;
+export const GLYPH_WIDTH = 4;
+export const GLYPH_HEIGHT = 5;
+export const LINE_HEIGHT = 6;
 
 export let sprites = new Image();
 sprites.src = spritesUrl;

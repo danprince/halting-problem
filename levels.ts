@@ -30,7 +30,7 @@ export let levels: Level[] = [
   {
     // Introduces the player to conditional instructions.
     id: "tutorial/conditional_instructions",
-    cycles: [10, 12, 15],
+    cycles: [10, 11, 12],
     labels: ["Hello world!"],
     program:
       // prettier-ignore

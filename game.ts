@@ -1,4 +1,14 @@
-import { clear, draw, label, resize, Sprite, write } from "./canvas";
+import {
+  clear,
+  draw,
+  frame,
+  label,
+  LINE_HEIGHT,
+  rect,
+  resize,
+  Sprite,
+  write,
+} from "./canvas";
 import { Level, levels } from "./levels";
 import * as sprites from "./sprites";
 import {
@@ -54,6 +64,7 @@ import {
 
 // RENDERING
 const CELL_SIZE_PIXELS = 19;
+const BLACK = "#000000";
 const WHITE = "white";
 const RED_1 = "#541828";
 const RED_2 = "#931c31";
@@ -382,6 +393,53 @@ function drawEditorInfo() {
   }
 }
 
+function getScore(level: Level, cycles: number): 0 | 1 | 2 | 3 {
+  if (cycles <= level.cycles[0]) return 0;
+  if (cycles <= level.cycles[1]) return 1;
+  if (cycles <= level.cycles[2]) return 2;
+  return 3;
+}
+
+const statuses = [
+  ["Excellence", BLUE_2],
+  ["Pretty Good", GREEN_2],
+  ["Acceptable", YELLOW_2],
+  ["Not Very Impressive", RED_2],
+] as const;
+
+function drawDebugStats() {
+  let w = 200;
+  let h = 80;
+  let x = (c.width / 2 - w / 2) | 0;
+  let y = (c.height / 2 - h / 2) | 0;
+  let shadow = 10;
+
+  // Shadow
+  rect(x - shadow, y - shadow, w + shadow * 2, h + shadow * 2, "#00000050");
+  // Background
+  rect(x, y, w, h, BLACK);
+  frame(x, y, w, h, WHITE);
+
+  let cycles = memory[CYC];
+  let level = currentLevel;
+  let score = getScore(level, cycles);
+  let [statusText, statusColor] = statuses[score];
+
+  let tx = x + 5;
+  let ty = y + 5;
+
+  // Level name
+  write(tx, ty, level.id);
+  ty += LINE_HEIGHT * 3;
+  write(tx, ty, statusText, statusColor);
+  ty += LINE_HEIGHT * 2;
+  write(tx, ty, `Halt found in ${memory[CYC]} cycles`);
+  ty += LINE_HEIGHT * 3;
+  write(tx, ty, `Press enter to continue`, GRAY_2);
+  ty += LINE_HEIGHT * 2;
+  write(tx, ty, `Press R to restart`, GRAY_1);
+}
+
 function render() {
   clear();
 
@@ -400,6 +458,10 @@ function render() {
   // Cursor
   if (cursor) {
     draw(sprites.cursor, cursor.x, cursor.y);
+  }
+
+  if (memory[STA] === HALTED) {
+    drawDebugStats();
   }
 }
 
@@ -436,11 +498,6 @@ function dispatch(command: number) {
   if (ok) {
     history.push(snapshot);
     cycle();
-  }
-
-  if (memory[STA] === HALTED) {
-    goToNextLevel();
-    init();
   }
 }
 
@@ -480,6 +537,17 @@ onkeydown = (event) => {
   // r to restart the current level
   if (key === "r") {
     init();
+  }
+
+  // Check whether we've finished the level
+  if (memory[STA] === HALTED) {
+    // Enter to advance to the next level after completion
+    if (key === "Enter") {
+      goToNextLevel();
+      init();
+    } else {
+      return;
+    }
   }
 
   // Export the current program to the console
