@@ -3,7 +3,17 @@ Play as a programmer trying to debug an innovative new two dimensional instructi
 
 Each cell in the grid represents a single instruction within a program. As the debugger moves into the cell, the instruction is executed. The aim of the game is to find a way to move into an END instruction, in order to progress to the next program.
 
-## Z13 Virtual Machine
+## TODO
+- [ ] Make ctrl+a and ctrl+x work in grid editing mode
+- [ ] Make opcode editing loop
+- [ ] Investigate @unplugin/macros for doing compile time work (https://jsr.io/@unplugin/macros)
+- [ ] Support rectangular selections in editing mode (yikes)
+- [ ] Do RLE on programs to reduce their size
+- [ ] Finalise instruction set opcodes
+- [ ] Show cycles count + goal on completion of levels
+- [ ] Make IP/SP/CYC into targetable addresses, so that there can be puzzles that rely on completing a section within time, or having a stack of a certain size.
+
+## D13 Virtual Machine
 The debugger itself has an internal register which acts as one operand for every instruction (internally this is named `DBG`). For example:
 
 - `MOV 10` can be read as `MOV 10 DBG` (move the literal value 10 to the `DBG` register).
@@ -42,6 +52,8 @@ Game starts at a terminal where the user can type commands (beginning with a pro
 - `zebug [file]` opens a program for debugging
 - `zedit [file]` opens a program for editing
 
+Should the TXT instructions left in the levels serve as direct tutorials or more like as comments left by the programmer?
+
 ## Manual
 Make a Zachtronics-esque manual to explain the instruction set and the memory layout.
 
@@ -50,3 +62,17 @@ Levels and programs should be distinct. A program is just the memory you load up
 - A file name for the level
 - Labels that can correspond to `LBL` instructions which show information.
 - The goal number of cycles to complete the level within.
+
+Rough game structure:
+- Introduce basic movement (start the player on a TXT tile with controls)
+- Introduce directional instructions
+- Introduce undo mechanics with a trap
+- Introduce conditional instructions
+
+## Ideas
+- Include a way to turn on vision for all instructions (including NILs and NOPs).
+
+### Lobby
+Dynamically generate a program which can serve as a virtual hub, where each level is accessible. Figure out which level is which by putting a directional `LOD N` instruction infront of the halt. Can use TXT instructions to show the name of each level and the cycles goals + personal bests.
+
+Could also include a link to a reference level which has a reference for every opcode.
