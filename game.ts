@@ -11,7 +11,7 @@ import {
 } from "./canvas";
 import { Level, levels } from "./levels";
 import * as sprites from "./sprites";
-import { cycle } from "./utils";
+import { cycle, runLengthDecode, runLengthEncode } from "./utils";
 import {
   GET,
   SET,
@@ -497,7 +497,8 @@ function dispatch(command: number) {
 }
 
 function init() {
-  load(currentLevel.program);
+  let program = runLengthDecode(currentLevel.program);
+  load(program);
 }
 
 function loop() {
@@ -550,10 +551,12 @@ onkeydown = (event) => {
     let snapshot = dump();
     snapshot[CYC] = 0; // reset cycles
     snapshot[STA] = RUNNING; // reset halt state
+    navigator.clipboard.writeText(
+      JSON.stringify(runLengthEncode([...snapshot])),
+    );
     console.groupCollapsed("📋 Program copied to clipboard!");
     console.log(snapshot);
     console.groupEnd();
-    navigator.clipboard.writeText(JSON.stringify([...snapshot]));
   }
 
   // Forward all other events to editor during edit mode.
