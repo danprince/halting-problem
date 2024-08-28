@@ -470,6 +470,11 @@ onpointermove = (event) => {
 onkeydown = (event) => {
   let { key } = event;
 
+  // r to restart the current level
+  if (key === "r") {
+    init();
+  }
+
   // Export the current program to the console
   if (key === "e") {
     let snapshot = dump();
